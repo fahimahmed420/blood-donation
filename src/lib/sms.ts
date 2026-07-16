@@ -95,12 +95,13 @@ async function callProvider(phone: string, message: string): Promise<void> {
   }
 
   // default: smsnetbd (Alpha SMS) — https://sms.net.bd
-  const url = new URL("https://api.sms.net.bd/sendsms");
-  url.searchParams.set("api_token", API_KEY);
-  url.searchParams.set("to", bdNumber);
-  url.searchParams.set("msg", message);
-  const res = await fetch(url.toString());
+  // POST form-encoded; the API returns HTTP 200 even on failure, with a
+  // JSON body where error === 0 means success.
+  const body = new URLSearchParams({ api_key: API_KEY, to: bdNumber, msg: message });
+  const res = await fetch("https://api.sms.net.bd/sendsms", { method: "POST", body });
   if (!res.ok) throw new Error(`sms.net.bd http ${res.status}`);
+  const json = (await res.json()) as { error: number; msg?: string };
+  if (json.error !== 0) throw new Error(`sms.net.bd error ${json.error}: ${json.msg ?? ""}`);
 }
 
 // ---------------------------------------------------------------------------
