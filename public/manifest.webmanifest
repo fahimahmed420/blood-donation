@@ -1,0 +1,18 @@
+{
+  "name": "Savar Blood Donor Network",
+  "short_name": "Savar Blood",
+  "description": "Free, non-profit blood donor network for Savar, Dhaka",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#dc2626",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
