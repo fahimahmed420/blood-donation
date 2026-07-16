@@ -51,7 +51,8 @@
     "call": "Call",
     "whatsapp": "WhatsApp",
     "last_donated": "Last donated",
-    "never_donated": "Never donated"
+    "never_donated": "Never donated",
+    "compatible_groups_title": "These groups can also donate to a {group} patient:"
   },
   "register": {
     "title": "Donor Registration",

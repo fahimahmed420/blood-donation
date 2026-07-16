@@ -101,6 +101,28 @@ Bangla SMS costs more per character than English (70 chars/segment vs 160),
 so all message templates in [`src/lib/sms.ts`](src/lib/sms.ts) are kept short
 on purpose. Don't lengthen them without checking the segment count.
 
+## Step 5b — Daily automation (optional, free)
+
+A once-a-day background job ([`src/app/api/cron/daily/route.ts`](src/app/api/cron/daily/route.ts))
+does two things automatically:
+- Texts donors an "you can donate again" reminder the moment they cross the
+  90-day mark (only if SMS is turned on)
+- Marks blood requests as expired once their "needed by" date has passed, so
+  the request board never shows dead requests
+
+This only runs once deployed on Vercel (there's no cron on your own machine).
+To enable it:
+
+1. Add a `CRON_SECRET` environment variable in Vercel — any random string
+   works (e.g. run `openssl rand -hex 24` or ask a password generator).
+   Vercel automatically sends it as a Bearer token to your own cron job, so
+   this keeps the endpoint from being triggered by anyone else.
+2. That's it — [`vercel.json`](vercel.json) already schedules the job daily
+   at 3am UTC (9am Bangladesh time). It's included on Vercel's free plan.
+
+If you skip this step, everything else on the site still works exactly the
+same — requests just won't auto-expire and reminders won't go out.
+
 ## Step 6 — Deploy for free on Vercel
 
 1. Push this project to a new GitHub repository (see commands below).

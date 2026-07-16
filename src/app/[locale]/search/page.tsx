@@ -4,7 +4,8 @@ import { isSupabaseConfigured } from "@/lib/supabase/config";
 import { SetupNotice } from "@/components/setup-notice";
 import { SearchForm } from "@/components/search-form";
 import { DonorCard } from "@/components/donor-card";
-import type { BloodGroup } from "@/lib/constants";
+import { CompatibleGroups } from "@/components/compatible-groups";
+import { BLOOD_GROUPS, type BloodGroup } from "@/lib/constants";
 import type { Profile, PublicDonor } from "@/lib/types";
 import { isEligible } from "@/lib/utils";
 
@@ -83,6 +84,10 @@ export default async function SearchPage({
             />
           ))}
         </ul>
+      )}
+
+      {group && BLOOD_GROUPS.includes(group as BloodGroup) && (
+        <CompatibleGroups group={group as BloodGroup} area={area} />
       )}
     </div>
   );

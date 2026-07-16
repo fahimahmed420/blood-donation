@@ -51,7 +51,8 @@
     "call": "কল করুন",
     "whatsapp": "হোয়াটসঅ্যাপ",
     "last_donated": "সর্বশেষ রক্তদান",
-    "never_donated": "এখনো দান করেননি"
+    "never_donated": "এখনো দান করেননি",
+    "compatible_groups_title": "{group} গ্রুপের রোগীকে এই গ্রুপগুলোও রক্ত দিতে পারে:"
   },
   "register": {
     "title": "রক্তদাতা নিবন্ধন",

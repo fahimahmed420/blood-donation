@@ -1,6 +1,21 @@
 export const BLOOD_GROUPS = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"] as const;
 export type BloodGroup = (typeof BLOOD_GROUPS)[number];
 
+// Which donor groups can safely give blood TO the given patient group
+// (standard whole-blood compatibility; O- is the universal donor,
+// AB+ is the universal recipient). Used to suggest alternatives when a
+// search for an exact group comes up empty.
+export const COMPATIBLE_DONOR_GROUPS: Record<BloodGroup, BloodGroup[]> = {
+  "A+": ["A+", "A-", "O+", "O-"],
+  "A-": ["A-", "O-"],
+  "B+": ["B+", "B-", "O+", "O-"],
+  "B-": ["B-", "O-"],
+  "AB+": ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"],
+  "AB-": ["A-", "B-", "AB-", "O-"],
+  "O+": ["O+", "O-"],
+  "O-": ["O-"],
+};
+
 // Minimum days between two whole-blood donations
 export const ELIGIBLE_DAYS = 90;
 
