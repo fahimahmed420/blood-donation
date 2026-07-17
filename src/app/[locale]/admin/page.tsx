@@ -6,7 +6,12 @@ import { getProfile } from "@/lib/auth";
 import { smsEnabled } from "@/lib/sms";
 import { SetupNotice } from "@/components/setup-notice";
 import { BloodGroupBadge } from "@/components/blood-group-badge";
-import { AdminVerifyButton, AdminDeleteRequestButton } from "@/components/admin-buttons";
+import {
+  AdminVerifyButton,
+  AdminDeleteRequestButton,
+  AdminMarkFulfilledButton,
+} from "@/components/admin-buttons";
+import { AdminDonorManager } from "@/components/admin-donor-manager";
 import { formatDate, localizeNumber } from "@/lib/utils";
 import type { Profile, BloodRequest } from "@/lib/types";
 
@@ -40,25 +45,31 @@ export default async function AdminPage({
   monthStart.setUTCDate(1);
   monthStart.setUTCHours(0, 0, 0, 0);
 
-  const [{ data: unverified }, { data: requests }, { data: smsRows }] = supabase
-    ? await Promise.all([
-        supabase
-          .from("profiles")
-          .select("*")
-          .eq("is_verified", false)
-          .order("created_at", { ascending: false })
-          .limit(50),
-        supabase
-          .from("blood_requests")
-          .select("*")
-          .order("created_at", { ascending: false })
-          .limit(50),
-        supabase
-          .from("sms_log")
-          .select("segments")
-          .gte("sent_at", monthStart.toISOString()),
-      ])
-    : [{ data: null }, { data: null }, { data: null }];
+  const [{ data: unverified }, { data: allDonors }, { data: requests }, { data: smsRows }] =
+    supabase
+      ? await Promise.all([
+          supabase
+            .from("profiles")
+            .select("*")
+            .eq("is_verified", false)
+            .order("created_at", { ascending: false })
+            .limit(50),
+          supabase
+            .from("profiles")
+            .select("*")
+            .order("created_at", { ascending: false })
+            .limit(500),
+          supabase
+            .from("blood_requests")
+            .select("*")
+            .order("created_at", { ascending: false })
+            .limit(50),
+          supabase
+            .from("sms_log")
+            .select("segments")
+            .gte("sent_at", monthStart.toISOString()),
+        ])
+      : [{ data: null }, { data: null }, { data: null }, { data: null }];
 
   const smsCount = smsRows?.length ?? 0;
   const smsSegments = (smsRows ?? []).reduce((sum, r) => sum + ((r as { segments: number }).segments ?? 1), 0);
@@ -115,6 +126,16 @@ export default async function AdminPage({
         )}
       </section>
 
+      <section className="mb-8">
+        <h2 className="mb-3 font-semibold text-neutral-800">
+          {t("admin.all_donors")}{" "}
+          <span className="text-sm font-normal text-neutral-400">
+            ({localizeNumber((allDonors ?? []).length, locale)})
+          </span>
+        </h2>
+        <AdminDonorManager donors={(allDonors as Profile[]) ?? []} currentUserId={profile.id} />
+      </section>
+
       <section>
         <h2 className="mb-3 font-semibold text-neutral-800">{t("admin.all_requests")}</h2>
         {!requests || requests.length === 0 ? (
@@ -135,7 +156,19 @@ export default async function AdminPage({
                     {req.status} · {formatDate(req.needed_by, locale)}
                   </p>
                 </div>
-                <AdminDeleteRequestButton requestId={req.id} label={t("admin.remove")} confirmLabel={t("admin.delete_confirm")} />
+                <div className="flex shrink-0 gap-1.5">
+                  {req.status === "open" && (
+                    <AdminMarkFulfilledButton
+                      requestId={req.id}
+                      label={t("requests.mark_fulfilled")}
+                    />
+                  )}
+                  <AdminDeleteRequestButton
+                    requestId={req.id}
+                    label={t("admin.remove")}
+                    confirmLabel={t("admin.delete_confirm")}
+                  />
+                </div>
               </li>
             ))}
           </ul>

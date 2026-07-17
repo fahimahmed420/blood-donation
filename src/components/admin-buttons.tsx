@@ -1,7 +1,12 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { adminVerifyDonorAction, adminDeleteDonorAction, deleteRequestAction } from "@/lib/actions";
+import {
+  adminVerifyDonorAction,
+  adminDeleteDonorAction,
+  deleteRequestAction,
+  adminMarkRequestFulfilledAction,
+} from "@/lib/actions";
 
 export function AdminVerifyButton({ donorId, label }: { donorId: string; label: string }) {
   const [pending, startTransition] = useTransition();
@@ -46,6 +51,30 @@ export function AdminDeleteDonorButton({
         });
       }}
       className="tap-target shrink-0 rounded-lg border border-red-300 px-3 py-1.5 text-sm font-medium text-red-600 disabled:opacity-60"
+    >
+      {label}
+    </button>
+  );
+}
+
+export function AdminMarkFulfilledButton({
+  requestId,
+  label,
+}: {
+  requestId: string;
+  label: string;
+}) {
+  const [pending, startTransition] = useTransition();
+
+  return (
+    <button
+      disabled={pending}
+      onClick={() =>
+        startTransition(async () => {
+          await adminMarkRequestFulfilledAction(requestId);
+        })
+      }
+      className="tap-target shrink-0 rounded-lg border border-emerald-300 px-3 py-1.5 text-sm font-medium text-emerald-700 disabled:opacity-60"
     >
       {label}
     </button>
