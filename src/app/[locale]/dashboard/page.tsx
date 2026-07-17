@@ -6,8 +6,10 @@ import { getUser, getProfile } from "@/lib/auth";
 import { SetupNotice } from "@/components/setup-notice";
 import { DashboardProfileForm } from "@/components/dashboard-profile-form";
 import { MarkDonatedButton } from "@/components/mark-donated-button";
+import { PushToggle } from "@/components/push-toggle";
 import { RequestCard } from "@/components/request-card";
 import { BloodGroupBadge } from "@/components/blood-group-badge";
+import { DonorBadge } from "@/components/donor-badge";
 import { Link } from "@/i18n/navigation";
 import { formatDate } from "@/lib/utils";
 import type { Donation, BloodRequest } from "@/lib/types";
@@ -61,17 +63,25 @@ export default async function DashboardPage({
         <div>
           <h1 className="text-xl font-bold text-neutral-900">{profile.full_name}</h1>
           <p className="text-sm text-neutral-500">{t(`areas.${profile.area}`)}</p>
-          {profile.is_verified ? (
-            <span className="mt-1 inline-block rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
-              {t("dashboard.verified_badge")}
-            </span>
-          ) : (
+          <div className="mt-1 flex flex-wrap gap-1.5">
+            {profile.is_verified && (
+              <span className="inline-block rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
+                {t("dashboard.verified_badge")}
+              </span>
+            )}
+            <DonorBadge donationCount={donations?.length ?? 0} />
+          </div>
+          {!profile.is_verified && (
             <p className="mt-1 text-xs text-amber-600">{t("dashboard.unverified_notice")}</p>
           )}
         </div>
       </div>
 
       <MarkDonatedButton />
+
+      <div className="mt-4">
+        <PushToggle />
+      </div>
 
       <section className="mt-6">
         <h2 className="mb-2 font-semibold text-neutral-800">{t("dashboard.edit_profile")}</h2>

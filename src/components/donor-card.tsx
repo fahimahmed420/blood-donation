@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { BloodGroupBadge } from "./blood-group-badge";
+import { DonorBadge } from "./donor-badge";
 import { formatDate, whatsappLink, daysUntilEligible, localizeNumber } from "@/lib/utils";
 import type { Profile, PublicDonor } from "@/lib/types";
 
@@ -9,11 +10,13 @@ export async function DonorCard({
   locale,
   loggedIn,
   eligible,
+  donationCount = 0,
 }: {
   donor: PublicDonor | Profile;
   locale: string;
   loggedIn: boolean;
   eligible: boolean;
+  donationCount?: number;
 }) {
   const t = await getTranslations();
   const phone = "phone" in donor ? donor.phone : null;
@@ -30,6 +33,7 @@ export async function DonorCard({
               {t("search.verified")}
             </span>
           )}
+          <DonorBadge donationCount={donationCount} />
         </div>
         <p className="truncate text-sm text-neutral-500">{t(`areas.${donor.area}`)}</p>
         <p className="mt-0.5 text-xs">

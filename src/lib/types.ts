@@ -27,6 +27,7 @@ export interface PublicDonor {
   last_donation_date: string | null;
   is_eligible: boolean;
   created_at: string;
+  donation_count: number;
 }
 
 export interface BloodRequest {

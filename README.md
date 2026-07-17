@@ -123,6 +123,29 @@ To enable it:
 If you skip this step, everything else on the site still works exactly the
 same — requests just won't auto-expire and reminders won't go out.
 
+## Step 5c — Web push notifications (optional, free — no SMS budget used)
+
+A free complement to SMS: donors who enable it on their dashboard get a
+phone notification the moment a matching blood request is posted, at no
+per-message cost (unlike SMS, there's no cap needed).
+
+1. Generate a VAPID keypair once:
+   ```bash
+   node -e "console.log(require('web-push').generateVAPIDKeys())"
+   ```
+2. Add to `.env.local` (and later to Vercel's environment variables):
+   ```
+   VAPID_PUBLIC_KEY=<publicKey from above>
+   VAPID_PRIVATE_KEY=<privateKey from above>
+   VAPID_SUBJECT=mailto:you@example.com
+   NEXT_PUBLIC_VAPID_PUBLIC_KEY=<same publicKey — this one is safe to expose>
+   ```
+3. Restart the server. Donors will see an "Enable" button for push
+   notifications on their dashboard.
+
+Skip this and the button on the dashboard just won't appear — nothing else
+changes.
+
 ## Step 6 — Deploy for free on Vercel
 
 1. Push this project to a new GitHub repository (see commands below).

@@ -66,7 +66,15 @@ export default async function AdminPage({
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
-      <h1 className="mb-6 text-xl font-bold text-neutral-900">{t("admin.title")}</h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-xl font-bold text-neutral-900">{t("admin.title")}</h1>
+        <a
+          href="/api/admin/export"
+          className="tap-target flex items-center rounded-lg border border-neutral-300 px-3 py-1.5 text-sm font-medium text-neutral-600 hover:bg-neutral-50"
+        >
+          {t("admin.export_csv")}
+        </a>
+      </div>
 
       <section className="mb-8 rounded-xl border border-neutral-200 bg-white p-5">
         <h2 className="mb-3 font-semibold text-neutral-800">{t("admin.sms_meter_title")}</h2>

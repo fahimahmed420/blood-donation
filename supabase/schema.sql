@@ -170,35 +170,73 @@ create trigger donations_sync_last_donation
   for each row execute function public.sync_last_donation();
 
 -- ---------------------------------------------------------------------------
--- 7. PUBLIC DONOR VIEW — what logged-OUT visitors can see.
+-- 7. DONATION COUNTS — powers donor recognition badges wherever donors are
+--    listed. Split into its own view so the logged-in donor search (which
+--    queries `profiles` directly for phone numbers) can join it cheaply.
+-- ---------------------------------------------------------------------------
+create view public.donor_donation_counts
+with (security_invoker = off) as
+select donor_id as id, count(*)::int as donation_count
+from public.donations
+group by donor_id;
+
+grant select on public.donor_donation_counts to anon, authenticated;
+
+-- ---------------------------------------------------------------------------
+-- 8. PUBLIC DONOR VIEW — what logged-OUT visitors can see.
 --    Deliberately EXCLUDES the phone number (anti-scraping).
 --    90 days = minimum gap between whole-blood donations.
 -- ---------------------------------------------------------------------------
 create view public.donors_public
 with (security_invoker = off) as
 select
-  id,
-  full_name,
-  blood_group,
-  area,
-  is_available,
-  is_verified,
-  phone_verified,
-  last_donation_date,
-  (last_donation_date is null or last_donation_date <= current_date - 90) as is_eligible,
-  created_at
-from public.profiles;
+  p.id,
+  p.full_name,
+  p.blood_group,
+  p.area,
+  p.is_available,
+  p.is_verified,
+  p.phone_verified,
+  p.last_donation_date,
+  (p.last_donation_date is null or p.last_donation_date <= current_date - 90) as is_eligible,
+  p.created_at,
+  coalesce(d.donation_count, 0) as donation_count
+from public.profiles p
+left join public.donor_donation_counts d on d.id = p.id;
 
 grant select on public.donors_public to anon, authenticated;
 
 -- ---------------------------------------------------------------------------
--- 8. ROW LEVEL SECURITY
+-- 9. WEB PUSH SUBSCRIPTIONS — free complement to SMS alerts. Only logged-in
+--    donors can subscribe; only the service role (server) reads them to
+--    send notifications.
 -- ---------------------------------------------------------------------------
-alter table public.profiles       enable row level security;
-alter table public.blood_requests enable row level security;
-alter table public.donations      enable row level security;
-alter table public.sms_log        enable row level security;
-alter table public.phone_otps     enable row level security;
+create table public.push_subscriptions (
+  id         bigint generated always as identity primary key,
+  donor_id   uuid not null references public.profiles (id) on delete cascade,
+  endpoint   text not null unique,
+  p256dh     text not null,
+  auth       text not null,
+  created_at timestamptz not null default now()
+);
+
+create index push_subscriptions_donor_idx on public.push_subscriptions (donor_id);
+
+-- ---------------------------------------------------------------------------
+-- 10. ROW LEVEL SECURITY
+-- ---------------------------------------------------------------------------
+alter table public.profiles          enable row level security;
+alter table public.blood_requests    enable row level security;
+alter table public.donations         enable row level security;
+alter table public.sms_log           enable row level security;
+alter table public.phone_otps        enable row level security;
+alter table public.push_subscriptions enable row level security;
+
+create policy "push_subscriptions: owner manages own"
+  on public.push_subscriptions for all
+  to authenticated
+  using (donor_id = auth.uid())
+  with check (donor_id = auth.uid());
 
 -- PROFILES: logged-in users may read full rows (incl. phone — that's the
 -- point of the site). Logged-out visitors only get the donors_public view.

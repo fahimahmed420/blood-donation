@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendSms, smsEnabled, requestAlertTemplate } from "@/lib/sms";
+import { sendPush, pushEnabled } from "@/lib/webpush";
 import { filterByWeeklyAlertLimit } from "@/lib/rate-limit";
 import { normalizeBdPhone, isEligible } from "@/lib/utils";
 import {
@@ -78,6 +79,9 @@ export async function POST(request: Request) {
   if (smsEnabled) {
     void alertMatchingDonors(created.id, bloodGroup, hospital, contactPhone);
   }
+  if (pushEnabled) {
+    void pushMatchingDonors(bloodGroup, hospital, created.id);
+  }
 
   return NextResponse.json({ request: created });
 }
@@ -110,5 +114,41 @@ async function alertMatchingDonors(
     toAlert.map((donor) =>
       sendSms(donor.phone, message, "alert", { recipientId: donor.id, requestId })
     )
+  );
+}
+
+async function pushMatchingDonors(bloodGroup: string, hospital: string, requestId: string) {
+  const admin = createAdminClient();
+  if (!admin) return;
+
+  const { data: candidates } = await admin
+    .from("profiles")
+    .select("id, last_donation_date")
+    .eq("blood_group", bloodGroup)
+    .eq("is_available", true);
+
+  const eligibleIds = (candidates ?? [])
+    .filter((c) => isEligible(c.last_donation_date))
+    .map((c) => c.id);
+  if (eligibleIds.length === 0) return;
+
+  const { data: subs } = await admin
+    .from("push_subscriptions")
+    .select("id, endpoint, p256dh, auth")
+    .in("donor_id", eligibleIds);
+
+  const payload = {
+    title: `${bloodGroup} — জরুরি রক্তের প্রয়োজন`,
+    body: hospital,
+    url: `/requests/${requestId}`,
+  };
+
+  await Promise.all(
+    (subs ?? []).map(async (sub) => {
+      const result = await sendPush(sub, payload);
+      if (result.expired) {
+        await admin.from("push_subscriptions").delete().eq("id", sub.id);
+      }
+    })
   );
 }

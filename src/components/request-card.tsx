@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { useTransition } from "react";
+import { Link } from "@/i18n/navigation";
 import { BloodGroupBadge } from "./blood-group-badge";
 import { formatDate, whatsappLink } from "@/lib/utils";
 import { markRequestFulfilledAction } from "@/lib/actions";
@@ -41,7 +42,9 @@ export function RequestCard({
               </span>
             )}
           </div>
-          <p className="text-sm text-neutral-600">{request.hospital}</p>
+          <Link href={`/requests/${request.id}`} className="text-sm text-neutral-600 hover:underline">
+            {request.hospital}
+          </Link>
           <p className="text-sm text-neutral-500">
             {t("requests.needed_by_label", { date: formatDate(request.needed_by, locale) })}
           </p>
@@ -81,6 +84,12 @@ export function RequestCard({
             {t("requests.mark_fulfilled")}
           </button>
         )}
+        <Link
+          href={`/requests/${request.id}`}
+          className="tap-target flex items-center rounded-lg border border-neutral-300 px-3 py-1.5 text-sm font-medium text-neutral-600"
+        >
+          {t("requests.view_and_share")}
+        </Link>
       </div>
     </li>
   );

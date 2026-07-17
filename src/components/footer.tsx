@@ -1,4 +1,5 @@
 import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 
 export async function Footer() {
   const t = await getTranslations();
@@ -13,6 +14,9 @@ export async function Footer() {
             {helpline}
           </a>
         </p>
+        <Link href="/awareness" className="mt-2 inline-block font-medium text-brand-600">
+          {t("awareness.title")}
+        </Link>
         <p className="mt-1">{t("footer.made_for")}</p>
       </div>
     </footer>

@@ -36,6 +36,7 @@ export default async function SearchPage({
   } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
 
   let donors: (PublicDonor | Profile)[] = [];
+  let donationCounts = new Map<string, number>();
 
   if (supabase) {
     if (user) {
@@ -44,6 +45,14 @@ export default async function SearchPage({
       if (area) query = query.eq("area", area);
       const { data } = await query.limit(60);
       donors = (data as Profile[]) ?? [];
+
+      if (donors.length > 0) {
+        const { data: counts } = await supabase
+          .from("donor_donation_counts")
+          .select("id, donation_count")
+          .in("id", donors.map((d) => d.id));
+        donationCounts = new Map((counts ?? []).map((c) => [c.id, c.donation_count]));
+      }
     } else {
       let query = supabase
         .from("donors_public")
@@ -80,6 +89,9 @@ export default async function SearchPage({
               loggedIn={!!user}
               eligible={
                 "is_eligible" in donor ? donor.is_eligible : isEligible(donor.last_donation_date)
+              }
+              donationCount={
+                "donation_count" in donor ? donor.donation_count : donationCounts.get(donor.id) ?? 0
               }
             />
           ))}

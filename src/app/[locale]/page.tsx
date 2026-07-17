@@ -18,16 +18,24 @@ export default async function HomePage({
   const t = await getTranslations();
 
   let urgentRequests: BloodRequest[] = [];
+  let donorCount = 0;
+  let donationCount = 0;
   if (isSupabaseConfigured) {
     const supabase = await createClient();
     if (supabase) {
-      const { data } = await supabase
-        .from("blood_requests")
-        .select("*")
-        .eq("status", "open")
-        .order("needed_by", { ascending: true })
-        .limit(5);
+      const [{ data }, { count: dc }, { count: dnc }] = await Promise.all([
+        supabase
+          .from("blood_requests")
+          .select("*")
+          .eq("status", "open")
+          .order("needed_by", { ascending: true })
+          .limit(5),
+        supabase.from("donors_public").select("id", { count: "exact", head: true }),
+        supabase.from("donations").select("id", { count: "exact", head: true }),
+      ]);
       urgentRequests = (data as BloodRequest[]) ?? [];
+      donorCount = dc ?? 0;
+      donationCount = dnc ?? 0;
     }
   }
 
@@ -58,6 +66,26 @@ export default async function HomePage({
       </section>
 
       {!isSupabaseConfigured && <SetupNotice />}
+
+      {/* Community stats — social proof, only shown once there's something to show */}
+      {donorCount > 0 && (
+        <section className="mx-auto max-w-4xl px-4 pt-6">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-xl border border-neutral-200 bg-white p-4 text-center">
+              <p className="text-2xl font-extrabold text-brand-600">
+                {localizeNumber(donorCount, locale)}
+              </p>
+              <p className="text-sm text-neutral-500">{t("home.stat_donors")}</p>
+            </div>
+            <div className="rounded-xl border border-neutral-200 bg-white p-4 text-center">
+              <p className="text-2xl font-extrabold text-brand-600">
+                {localizeNumber(donationCount, locale)}
+              </p>
+              <p className="text-sm text-neutral-500">{t("home.stat_donations")}</p>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Blood group quick search */}
       <section className="mx-auto max-w-4xl px-4 py-8">
