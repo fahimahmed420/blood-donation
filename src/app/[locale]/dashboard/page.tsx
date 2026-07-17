@@ -8,7 +8,7 @@ import { DashboardProfileForm } from "@/components/dashboard-profile-form";
 import { MarkDonatedButton } from "@/components/mark-donated-button";
 import { PushToggle } from "@/components/push-toggle";
 import { RequestCard } from "@/components/request-card";
-import { BloodGroupBadge } from "@/components/blood-group-badge";
+import { DonorAvatar } from "@/components/donor-avatar";
 import { DonorBadge } from "@/components/donor-badge";
 import { Link } from "@/i18n/navigation";
 import { formatDate } from "@/lib/utils";
@@ -59,7 +59,7 @@ export default async function DashboardPage({
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
       <div className="mb-6 flex items-center gap-4">
-        <BloodGroupBadge group={profile.blood_group} size="lg" />
+        <DonorAvatar photoUrl={profile.avatar_url} bloodGroup={profile.blood_group} size="lg" />
         <div>
           <h1 className="text-xl font-bold text-neutral-900">{profile.full_name}</h1>
           <p className="text-sm text-neutral-500">{t(`areas.${profile.area}`)}</p>

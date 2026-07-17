@@ -9,6 +9,7 @@ import {
   adminDeleteDonorAction,
 } from "@/lib/actions";
 import { BLOOD_GROUPS, AREAS } from "@/lib/constants";
+import { DonorAvatar } from "./donor-avatar";
 import type { Profile } from "@/lib/types";
 
 export function AdminDonorManager({
@@ -81,9 +82,7 @@ function AdminDonorRow({ donor, isSelf }: { donor: Profile; isSelf: boolean }) {
   return (
     <li className="rounded-xl border border-neutral-200 bg-white p-3">
       <div className="flex items-center gap-3">
-        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-red-50 text-sm font-bold text-red-600">
-          {donor.blood_group}
-        </span>
+        <DonorAvatar photoUrl={donor.avatar_url} bloodGroup={donor.blood_group} size="sm" />
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5">
             <p className="truncate font-medium text-neutral-800">{donor.full_name}</p>

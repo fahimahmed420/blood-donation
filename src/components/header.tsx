@@ -12,6 +12,7 @@ export async function Header({ profile }: { profile: Profile | null }) {
     { href: "/", label: t("nav.home") },
     { href: "/search", label: t("nav.search") },
     { href: "/requests", label: t("nav.requests") },
+    { href: "/testimonials", label: t("nav.testimonials") },
     { href: "/register", label: t("nav.register") },
   ];
 

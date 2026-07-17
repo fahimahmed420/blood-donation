@@ -1,6 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
-import { BloodGroupBadge } from "./blood-group-badge";
+import { DonorAvatar } from "./donor-avatar";
 import { DonorBadge } from "./donor-badge";
 import { formatDate, whatsappLink, daysUntilEligible, localizeNumber } from "@/lib/utils";
 import type { Profile, PublicDonor } from "@/lib/types";
@@ -23,7 +23,7 @@ export async function DonorCard({
 
   return (
     <li className="flex items-center gap-3 rounded-xl border border-neutral-200 bg-white p-4">
-      <BloodGroupBadge group={donor.blood_group} size="md" />
+      <DonorAvatar photoUrl={donor.avatar_url} bloodGroup={donor.blood_group} size="md" />
 
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-1.5">

@@ -2,14 +2,16 @@
 
 import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
-import { updateProfileAction, signOutAction } from "@/lib/actions";
+import { updateProfileAction, updateAvatarAction, signOutAction } from "@/lib/actions";
 import { AREAS } from "@/lib/constants";
+import { ImageUploader } from "./image-uploader";
 import type { Profile } from "@/lib/types";
 
 export function DashboardProfileForm({ profile }: { profile: Profile }) {
   const t = useTranslations();
   const [pending, startTransition] = useTransition();
   const [saved, setSaved] = useState(false);
+  const [avatarSaved, setAvatarSaved] = useState(false);
 
   function handleSubmit(formData: FormData) {
     setSaved(false);
@@ -19,8 +21,24 @@ export function DashboardProfileForm({ profile }: { profile: Profile }) {
     });
   }
 
+  function handleAvatarUploaded(url: string) {
+    setAvatarSaved(false);
+    startTransition(async () => {
+      const res = await updateAvatarAction(url);
+      if (!res.error) setAvatarSaved(true);
+    });
+  }
+
   return (
     <form action={handleSubmit} className="space-y-4 rounded-xl border border-neutral-200 bg-white p-5">
+      <div>
+        <label className="mb-1 block text-sm font-medium text-neutral-600">
+          {t("dashboard.profile_photo")}
+        </label>
+        <ImageUploader kind="avatar" currentUrl={profile.avatar_url} onUploaded={handleAvatarUploaded} />
+        {avatarSaved && <span className="mt-1 block text-xs text-emerald-600">{t("dashboard.saved")}</span>}
+      </div>
+
       <div>
         <label className="mb-1 block text-sm font-medium text-neutral-600">
           {t("register.full_name")}

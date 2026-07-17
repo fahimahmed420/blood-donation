@@ -12,6 +12,7 @@ export interface Profile {
   phone_verified: boolean;
   is_verified: boolean;
   is_admin: boolean;
+  avatar_url: string | null;
   created_at: string;
 }
 
@@ -25,9 +26,23 @@ export interface PublicDonor {
   is_verified: boolean;
   phone_verified: boolean;
   last_donation_date: string | null;
+  avatar_url: string | null;
   is_eligible: boolean;
   created_at: string;
   donation_count: number;
+}
+
+export interface Testimonial {
+  id: string;
+  author_id: string;
+  message: string;
+  photo_url: string | null;
+  is_approved: boolean;
+  created_at: string;
+}
+
+export interface TestimonialWithAuthor extends Testimonial {
+  profiles: { full_name: string; area: string; avatar_url: string | null } | null;
 }
 
 export interface BloodRequest {

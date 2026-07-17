@@ -12,8 +12,10 @@ import {
   AdminMarkFulfilledButton,
 } from "@/components/admin-buttons";
 import { AdminDonorManager } from "@/components/admin-donor-manager";
+import { AdminApproveTestimonialButton, AdminDeleteTestimonialButton } from "@/components/admin-buttons";
+import { cloudinaryThumb } from "@/lib/cloudinary-url";
 import { formatDate, localizeNumber } from "@/lib/utils";
-import type { Profile, BloodRequest } from "@/lib/types";
+import type { Profile, BloodRequest, TestimonialWithAuthor } from "@/lib/types";
 
 const SMS_COST_PER_SEGMENT_TK = 0.3;
 const SMS_MONTHLY_CAP = Number(process.env.SMS_MONTHLY_CAP ?? "1800");
@@ -45,31 +47,42 @@ export default async function AdminPage({
   monthStart.setUTCDate(1);
   monthStart.setUTCHours(0, 0, 0, 0);
 
-  const [{ data: unverified }, { data: allDonors }, { data: requests }, { data: smsRows }] =
-    supabase
-      ? await Promise.all([
-          supabase
-            .from("profiles")
-            .select("*")
-            .eq("is_verified", false)
-            .order("created_at", { ascending: false })
-            .limit(50),
-          supabase
-            .from("profiles")
-            .select("*")
-            .order("created_at", { ascending: false })
-            .limit(500),
-          supabase
-            .from("blood_requests")
-            .select("*")
-            .order("created_at", { ascending: false })
-            .limit(50),
-          supabase
-            .from("sms_log")
-            .select("segments")
-            .gte("sent_at", monthStart.toISOString()),
-        ])
-      : [{ data: null }, { data: null }, { data: null }, { data: null }];
+  const [
+    { data: unverified },
+    { data: allDonors },
+    { data: requests },
+    { data: smsRows },
+    { data: pendingStories },
+  ] = supabase
+    ? await Promise.all([
+        supabase
+          .from("profiles")
+          .select("*")
+          .eq("is_verified", false)
+          .order("created_at", { ascending: false })
+          .limit(50),
+        supabase
+          .from("profiles")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(500),
+        supabase
+          .from("blood_requests")
+          .select("*")
+          .order("created_at", { ascending: false })
+          .limit(50),
+        supabase
+          .from("sms_log")
+          .select("segments")
+          .gte("sent_at", monthStart.toISOString()),
+        supabase
+          .from("testimonials")
+          .select("*, profiles(full_name, area, avatar_url)")
+          .eq("is_approved", false)
+          .order("created_at", { ascending: false })
+          .limit(50),
+      ])
+    : [{ data: null }, { data: null }, { data: null }, { data: null }, { data: null }];
 
   const smsCount = smsRows?.length ?? 0;
   const smsSegments = (smsRows ?? []).reduce((sum, r) => sum + ((r as { segments: number }).segments ?? 1), 0);
@@ -134,6 +147,48 @@ export default async function AdminPage({
           </span>
         </h2>
         <AdminDonorManager donors={(allDonors as Profile[]) ?? []} currentUserId={profile.id} />
+      </section>
+
+      <section className="mb-8">
+        <h2 className="mb-3 font-semibold text-neutral-800">
+          {t("admin.pending_stories")}{" "}
+          <span className="text-sm font-normal text-neutral-400">
+            ({localizeNumber((pendingStories ?? []).length, locale)})
+          </span>
+        </h2>
+        {!pendingStories || pendingStories.length === 0 ? (
+          <p className="text-sm text-neutral-400">—</p>
+        ) : (
+          <ul className="space-y-2">
+            {(pendingStories as TestimonialWithAuthor[]).map((story) => (
+              <li key={story.id} className="rounded-xl border border-neutral-200 bg-white p-3">
+                <p className="text-sm font-medium text-neutral-800">
+                  {story.profiles?.full_name ?? "—"}
+                </p>
+                <p className="mt-1 whitespace-pre-wrap text-sm text-neutral-600">{story.message}</p>
+                {story.photo_url && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={cloudinaryThumb(story.photo_url, 300)}
+                    alt=""
+                    className="mt-2 max-h-40 rounded-lg object-cover"
+                  />
+                )}
+                <div className="mt-2 flex gap-1.5">
+                  <AdminApproveTestimonialButton
+                    testimonialId={story.id}
+                    label={t("admin.approve")}
+                  />
+                  <AdminDeleteTestimonialButton
+                    testimonialId={story.id}
+                    label={t("admin.remove")}
+                    confirmLabel={t("admin.delete_confirm")}
+                  />
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <section>

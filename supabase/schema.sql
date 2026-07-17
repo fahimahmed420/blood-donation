@@ -20,6 +20,7 @@ create table public.profiles (
   phone_verified     boolean not null default false,  -- set by OTP flow (service role)
   is_verified        boolean not null default false,  -- set by admin after a phone call
   is_admin           boolean not null default false,
+  avatar_url         text,  -- Cloudinary secure_url, optional profile photo
   created_at         timestamptz not null default now()
 );
 
@@ -198,6 +199,7 @@ select
   p.is_verified,
   p.phone_verified,
   p.last_donation_date,
+  p.avatar_url,
   (p.last_donation_date is null or p.last_donation_date <= current_date - 90) as is_eligible,
   p.created_at,
   coalesce(d.donation_count, 0) as donation_count
@@ -223,7 +225,24 @@ create table public.push_subscriptions (
 create index push_subscriptions_donor_idx on public.push_subscriptions (donor_id);
 
 -- ---------------------------------------------------------------------------
--- 10. ROW LEVEL SECURITY
+-- 11. TESTIMONIALS — donors share their experience, with an optional photo.
+--     New stories start unapproved so an admin can moderate before anything
+--     shows up publicly (same trust model as donor verification).
+-- ---------------------------------------------------------------------------
+create table public.testimonials (
+  id          uuid primary key default gen_random_uuid(),
+  author_id   uuid not null references public.profiles (id) on delete cascade,
+  message     text not null check (char_length(message) between 10 and 600),
+  photo_url   text,
+  is_approved boolean not null default false,
+  created_at  timestamptz not null default now()
+);
+
+create index testimonials_author_idx on public.testimonials (author_id);
+create index testimonials_approved_idx on public.testimonials (is_approved, created_at desc);
+
+-- ---------------------------------------------------------------------------
+-- 12. ROW LEVEL SECURITY
 -- ---------------------------------------------------------------------------
 alter table public.profiles          enable row level security;
 alter table public.blood_requests    enable row level security;
@@ -231,12 +250,34 @@ alter table public.donations         enable row level security;
 alter table public.sms_log           enable row level security;
 alter table public.phone_otps        enable row level security;
 alter table public.push_subscriptions enable row level security;
+alter table public.testimonials      enable row level security;
 
 create policy "push_subscriptions: owner manages own"
   on public.push_subscriptions for all
   to authenticated
   using (donor_id = auth.uid())
   with check (donor_id = auth.uid());
+
+create policy "testimonials: read approved, own, or admin"
+  on public.testimonials for select
+  to anon, authenticated
+  using (is_approved = true or author_id = auth.uid() or public.is_admin());
+
+create policy "testimonials: author submits own"
+  on public.testimonials for insert
+  to authenticated
+  with check (author_id = auth.uid());
+
+create policy "testimonials: author or admin updates"
+  on public.testimonials for update
+  to authenticated
+  using (author_id = auth.uid() or public.is_admin())
+  with check (public.is_admin() or (author_id = auth.uid() and is_approved = false));
+
+create policy "testimonials: author or admin deletes"
+  on public.testimonials for delete
+  to authenticated
+  using (author_id = auth.uid() or public.is_admin());
 
 -- PROFILES: logged-in users may read full rows (incl. phone — that's the
 -- point of the site). Logged-out visitors only get the donors_public view.

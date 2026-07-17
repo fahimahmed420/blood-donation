@@ -7,6 +7,7 @@
     "home": "Home",
     "search": "Find Donors",
     "requests": "Blood Requests",
+    "testimonials": "Stories",
     "register": "Become a Donor",
     "dashboard": "My Profile",
     "admin": "Admin",
@@ -114,6 +115,7 @@
   },
   "dashboard": {
     "title": "My Profile",
+    "profile_photo": "Profile Photo",
     "edit_profile": "Edit Profile",
     "availability": "Currently willing to donate",
     "mark_donated": "I donated today",
@@ -165,7 +167,28 @@
     "error_unauthorized": "Please log in again.",
     "error_cannot_demote_self": "You can't remove your own admin rights.",
     "error_cannot_delete_self": "You can't delete your own profile here.",
-    "error_not_configured": "Database not configured."
+    "error_not_configured": "Database not configured.",
+    "pending_stories": "Pending Stories",
+    "approve": "Approve"
+  },
+  "upload": {
+    "choose_photo": "Choose photo",
+    "uploading": "Uploading...",
+    "error": "Upload failed. Try a smaller photo or check your connection."
+  },
+  "testimonials": {
+    "title": "Donor Stories",
+    "subtitle": "Real experiences from donors and people who received help",
+    "message_label": "Share your experience",
+    "message_placeholder": "How did donating (or receiving) blood through Savar Blood go for you?",
+    "photo_label": "Add a photo (optional)",
+    "submit": "Share Story",
+    "submit_error": "Couldn't submit your story. Please try again.",
+    "moderation_notice": "An admin reviews stories before they appear publicly.",
+    "submitted_notice": "Thank you! Your story has been submitted and will appear here once approved.",
+    "login_to_share": "Log in to share your story",
+    "no_stories": "No stories yet — be the first to share.",
+    "anonymous": "A donor"
   },
   "auth": {
     "login_title": "Log In",

@@ -146,6 +146,38 @@ per-message cost (unlike SMS, there's no cap needed).
 Skip this and the button on the dashboard just won't appear — nothing else
 changes.
 
+## Step 5d — Profile photos & donor stories (optional, free)
+
+Lets donors upload a profile photo (shown everywhere they appear on the
+site) and share a short story about their donation experience, with an
+optional photo, on the new `/testimonials` page. Stories are held for admin
+approval before they go public.
+
+Uploads go straight from the visitor's browser to Cloudinary — never
+through your server — so there's no file-size limit to worry about, and
+every photo is automatically resized and compressed on the way in.
+
+1. Sign up free at https://cloudinary.com (25 GB storage/bandwidth per
+   month on the free tier — plenty for a town-sized site).
+2. From the Cloudinary dashboard, copy your **Cloud name**, **API key**,
+   and **API secret**.
+3. Add to `.env.local` (and later to Vercel's environment variables):
+   ```
+   CLOUDINARY_CLOUD_NAME=your-cloud-name
+   CLOUDINARY_API_KEY=your-api-key
+   CLOUDINARY_API_SECRET=your-api-secret
+   NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your-cloud-name
+   ```
+   `CLOUDINARY_API_SECRET` must stay server-only — never put it in a
+   `NEXT_PUBLIC_` variable.
+4. In Supabase SQL Editor, run
+   [`supabase/migration_003_photos.sql`](supabase/migration_003_photos.sql)
+   (adds the `avatar_url` column and the `testimonials` table).
+5. Restart the server. Donors now see a photo picker on their dashboard,
+   and a "Share Story" form on `/testimonials`.
+
+Skip this and the photo pickers just won't appear — nothing else changes.
+
 ## Step 6 — Deploy for free on Vercel
 
 1. Push this project to a new GitHub repository (see commands below).

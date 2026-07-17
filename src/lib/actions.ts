@@ -77,6 +77,24 @@ export async function updateProfileAction(formData: FormData): Promise<ActionRes
   return {};
 }
 
+export async function updateAvatarAction(url: string): Promise<ActionResult> {
+  const supabase = await createClient();
+  if (!supabase) return { error: "not_configured" };
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "unauthorized" };
+
+  if (!url.startsWith("https://res.cloudinary.com/")) return { error: "invalid_input" };
+
+  const { error } = await supabase.from("profiles").update({ avatar_url: url }).eq("id", user.id);
+  if (error) return { error: "update_failed" };
+
+  revalidatePath("/", "layout");
+  return {};
+}
+
 export async function markDonatedAction(): Promise<ActionResult> {
   const supabase = await createClient();
   if (!supabase) return { error: "not_configured" };
@@ -265,6 +283,68 @@ export async function adminDeleteDonorAction(donorId: string): Promise<ActionRes
 
   revalidatePath("/admin");
   revalidatePath("/search");
+  return {};
+}
+
+// ---------------------------------------------------------------------------
+// Testimonials (experience sharing)
+// ---------------------------------------------------------------------------
+
+export async function createTestimonialAction(formData: FormData): Promise<ActionResult> {
+  const supabase = await createClient();
+  if (!supabase) return { error: "not_configured" };
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "unauthorized" };
+
+  const message = String(formData.get("message") ?? "").trim();
+  const photoUrl = String(formData.get("photo_url") ?? "").trim() || null;
+
+  if (message.length < 10 || message.length > 600) return { error: "invalid_message" };
+  if (photoUrl && !photoUrl.startsWith("https://res.cloudinary.com/")) {
+    return { error: "invalid_input" };
+  }
+
+  const { error } = await supabase.from("testimonials").insert({
+    author_id: user.id,
+    message,
+    photo_url: photoUrl,
+  });
+
+  if (error) return { error: "insert_failed" };
+
+  revalidatePath("/testimonials");
+  return {};
+}
+
+export async function deleteTestimonialAction(testimonialId: string): Promise<ActionResult> {
+  const supabase = await createClient();
+  if (!supabase) return { error: "not_configured" };
+
+  const { error } = await supabase.from("testimonials").delete().eq("id", testimonialId);
+  if (error) return { error: "delete_failed" };
+
+  revalidatePath("/testimonials");
+  revalidatePath("/admin");
+  return {};
+}
+
+export async function adminApproveTestimonialAction(testimonialId: string): Promise<ActionResult> {
+  const gate = await requireAdmin();
+  if ("error" in gate) return gate;
+
+  const { error } = await gate.supabase
+    .from("testimonials")
+    .update({ is_approved: true })
+    .eq("id", testimonialId);
+
+  if (error) return { error: "update_failed" };
+
+  revalidatePath("/testimonials");
+  revalidatePath("/admin");
+  revalidatePath("/");
   return {};
 }
 
