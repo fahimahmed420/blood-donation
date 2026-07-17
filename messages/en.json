@@ -1,6 +1,6 @@
 {
   "site": {
-    "name": "Savar Blood",
+    "name": "Savar Blood Donors",
     "tagline": "Savar's Blood Donor Network"
   },
   "nav": {
@@ -180,7 +180,7 @@
     "title": "Donor Stories",
     "subtitle": "Real experiences from donors and people who received help",
     "message_label": "Share your experience",
-    "message_placeholder": "How did donating (or receiving) blood through Savar Blood go for you?",
+    "message_placeholder": "How did donating (or receiving) blood through Savar Blood Donors go for you?",
     "photo_label": "Add a photo (optional)",
     "submit": "Share Story",
     "submit_error": "Couldn't submit your story. Please try again.",

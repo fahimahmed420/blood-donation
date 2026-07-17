@@ -1,4 +1,4 @@
-# Savar Blood Donor Network
+# Savar Blood Donors
 
 A free, non-profit website so people in Savar, Dhaka can find blood donors and
 register as donors. Built with Next.js, Supabase, and free hosting on Vercel.
